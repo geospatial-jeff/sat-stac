@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import traceback
+from urllib.parse import urljoin
 
 from string import Formatter, Template
 from datetime import datetime
@@ -28,8 +29,15 @@ class Item(Thing):
         """ Get Collection info for this item """
         if self._collection is None:
             if self.filename is None:
-                # TODO - raise exception ?
-                return None
+                # # TODO - raise exception ?
+                if not self.links('collection')[0]:
+                    return None
+                col_url = urljoin(
+                    urljoin(self.links('self')[0], self.links('root')[0]),
+                    urljoin(self.links('self')[0], self.links('collection')[0])
+                )
+                self._collection = Collection.open(col_url)
+                return self._collection
             link = self.links('collection')
             if len(link) == 1:
                 self._collection = Collection.open(link[0])
